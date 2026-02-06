@@ -1,0 +1,205 @@
+[0.120s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', 'joystick_control', 'movement']
+[0.120s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['joystick_control', 'movement'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7ffebf99c980>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7ffebfb4a8a0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7ffebfb4a8a0>>, mixin_verb=('build',))
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.166s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.166s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/workspace'
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.167s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.198s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.198s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.198s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.198s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.198s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.199s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extensions ['ignore', 'ignore_ament_install']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extension 'ignore'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extension 'ignore_ament_install'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extensions ['colcon_pkg']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extension 'colcon_pkg'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extensions ['colcon_meta']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extension 'colcon_meta'
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extensions ['ros']
+[0.200s] Level 1:colcon.colcon_core.package_identification:_identify(src/joystick_control) by extension 'ros'
+[0.205s] DEBUG:colcon.colcon_core.package_identification:Package 'src/joystick_control' with type 'ros.ament_python' and name 'joystick_control'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extensions ['ignore', 'ignore_ament_install']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extension 'ignore'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extension 'ignore_ament_install'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extensions ['colcon_pkg']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extension 'colcon_pkg'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extensions ['colcon_meta']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extension 'colcon_meta'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extensions ['ros']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(src/movement) by extension 'ros'
+[0.206s] DEBUG:colcon.colcon_core.package_identification:Package 'src/movement' with type 'ros.ament_python' and name 'movement'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['ignore', 'ignore_ament_install']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'ignore'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'ignore_ament_install'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['colcon_pkg']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'colcon_pkg'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['colcon_meta']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'colcon_meta'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['ros']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'ros'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['cmake', 'python']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'cmake'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'python'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extensions ['python_setup_py']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/vision) by extension 'python_setup_py'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['ignore', 'ignore_ament_install']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'ignore'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'ignore_ament_install'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['colcon_pkg']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'colcon_pkg'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['colcon_meta']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'colcon_meta'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['ros']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'ros'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['cmake', 'python']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'cmake'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'python'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extensions ['python_setup_py']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(src/working_code) by extension 'python_setup_py'
+[0.207s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.208s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.208s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.208s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.208s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_args' from command line to 'None'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_target' from command line to 'None'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_clean_cache' from command line to 'False'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_clean_first' from command line to 'False'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'cmake_force_configure' from command line to 'False'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'ament_cmake_args' from command line to 'None'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'catkin_cmake_args' from command line to 'None'
+[0.228s] Level 5:colcon.colcon_core.verb:set package 'joystick_control' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.228s] DEBUG:colcon.colcon_core.verb:Building package 'joystick_control' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/joystick_control', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/joystick_control', 'merge_install': False, 'path': '/workspace/src/joystick_control', 'symlink_install': False, 'test_result_base': None}
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_args' from command line to 'None'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_target' from command line to 'None'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_clean_cache' from command line to 'False'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_clean_first' from command line to 'False'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'cmake_force_configure' from command line to 'False'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'ament_cmake_args' from command line to 'None'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'catkin_cmake_args' from command line to 'None'
+[0.229s] Level 5:colcon.colcon_core.verb:set package 'movement' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.229s] DEBUG:colcon.colcon_core.verb:Building package 'movement' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/movement', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/movement', 'merge_install': False, 'path': '/workspace/src/movement', 'symlink_install': False, 'test_result_base': None}
+[0.229s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.230s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.230s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/workspace/src/joystick_control' with build type 'ament_python'
+[0.230s] Level 1:colcon.colcon_core.shell:create_environment_hook('joystick_control', 'ament_prefix_path')
+[0.233s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.233s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/joystick_control/share/joystick_control/hook/ament_prefix_path.ps1'
+[0.234s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/workspace/install/joystick_control/share/joystick_control/hook/ament_prefix_path.dsv'
+[0.234s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/joystick_control/share/joystick_control/hook/ament_prefix_path.sh'
+[0.235s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.235s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.236s] WARNING:colcon.colcon_core.prefix_path.colcon:The path '/workspace/src/install' in the environment variable COLCON_PREFIX_PATH doesn't exist
+[0.236s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/workspace/src/install/movement' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.236s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/workspace/src/install/joystick_control' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.240s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/workspace/src/movement' with build type 'ament_python'
+[0.240s] Level 1:colcon.colcon_core.shell:create_environment_hook('movement', 'ament_prefix_path')
+[0.240s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/movement/share/movement/hook/ament_prefix_path.ps1'
+[0.241s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/workspace/install/movement/share/movement/hook/ament_prefix_path.dsv'
+[0.242s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/movement/share/movement/hook/ament_prefix_path.sh'
+[0.242s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.242s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.495s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/workspace/src/joystick_control'
+[0.496s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.496s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.754s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/workspace/src/movement'
+[0.755s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.755s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.464s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/workspace/src/joystick_control': PYTHONPATH=/workspace/build/joystick_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/joystick_control/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/joystick_control build --build-base /workspace/build/joystick_control/build install --record /workspace/build/joystick_control/install.log --single-version-externally-managed install_data
+[1.473s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/workspace/src/movement': PYTHONPATH=/workspace/build/movement/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/movement/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/movement build --build-base /workspace/build/movement/build install --record /workspace/build/movement/install.log --single-version-externally-managed install_data
+[2.088s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/workspace/src/joystick_control' returned '0': PYTHONPATH=/workspace/build/joystick_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/joystick_control/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/joystick_control build --build-base /workspace/build/joystick_control/build install --record /workspace/build/joystick_control/install.log --single-version-externally-managed install_data
+[2.091s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control' for CMake module files
+[2.091s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control' for CMake config files
+[2.092s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control/lib'
+[2.092s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control/bin'
+[2.092s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control/lib/pkgconfig/joystick_control.pc'
+[2.093s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control/lib/python3.12/site-packages'
+[2.093s] Level 1:colcon.colcon_core.shell:create_environment_hook('joystick_control', 'pythonpath')
+[2.093s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/joystick_control/share/joystick_control/hook/pythonpath.ps1'
+[2.094s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/workspace/install/joystick_control/share/joystick_control/hook/pythonpath.dsv'
+[2.094s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/joystick_control/share/joystick_control/hook/pythonpath.sh'
+[2.095s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/joystick_control/bin'
+[2.095s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(joystick_control)
+[2.096s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/joystick_control/share/joystick_control/package.ps1'
+[2.097s] INFO:colcon.colcon_core.shell:Creating package descriptor '/workspace/install/joystick_control/share/joystick_control/package.dsv'
+[2.097s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/joystick_control/share/joystick_control/package.sh'
+[2.098s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/joystick_control/share/joystick_control/package.bash'
+[2.099s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/joystick_control/share/joystick_control/package.zsh'
+[2.099s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/workspace/install/joystick_control/share/colcon-core/packages/joystick_control)
+[2.102s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement' for CMake module files
+[2.102s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/workspace/src/movement' returned '0': PYTHONPATH=/workspace/build/movement/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/movement/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/movement build --build-base /workspace/build/movement/build install --record /workspace/build/movement/install.log --single-version-externally-managed install_data
+[2.103s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement' for CMake config files
+[2.103s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement/lib'
+[2.103s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement/bin'
+[2.103s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement/lib/pkgconfig/movement.pc'
+[2.104s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement/lib/python3.12/site-packages'
+[2.104s] Level 1:colcon.colcon_core.shell:create_environment_hook('movement', 'pythonpath')
+[2.104s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/movement/share/movement/hook/pythonpath.ps1'
+[2.105s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/workspace/install/movement/share/movement/hook/pythonpath.dsv'
+[2.105s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/movement/share/movement/hook/pythonpath.sh'
+[2.106s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/movement/bin'
+[2.106s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(movement)
+[2.106s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/movement/share/movement/package.ps1'
+[2.107s] INFO:colcon.colcon_core.shell:Creating package descriptor '/workspace/install/movement/share/movement/package.dsv'
+[2.107s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/movement/share/movement/package.sh'
+[2.108s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/movement/share/movement/package.bash'
+[2.108s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/movement/share/movement/package.zsh'
+[2.108s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/workspace/install/movement/share/colcon-core/packages/movement)
+[2.108s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[2.109s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[2.109s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[2.109s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[2.116s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[2.116s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[2.116s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[2.116s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[2.116s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.NotSupported: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[2.116s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[2.116s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.ps1'
+[2.117s] INFO:colcon.colcon_core.shell:Creating prefix util module '/workspace/install/_local_setup_util_ps1.py'
+[2.118s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.ps1'
+[2.119s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.sh'
+[2.120s] INFO:colcon.colcon_core.shell:Creating prefix util module '/workspace/install/_local_setup_util_sh.py'
+[2.120s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.sh'
+[2.121s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.bash'
+[2.124s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.bash'
+[2.125s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.zsh'
+[2.125s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.zsh'

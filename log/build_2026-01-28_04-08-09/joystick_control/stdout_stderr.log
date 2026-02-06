@@ -1,0 +1,35 @@
+running egg_info
+creating ../../build/joystick_control/joystick_control.egg-info
+writing ../../build/joystick_control/joystick_control.egg-info/PKG-INFO
+writing dependency_links to ../../build/joystick_control/joystick_control.egg-info/dependency_links.txt
+writing entry points to ../../build/joystick_control/joystick_control.egg-info/entry_points.txt
+writing requirements to ../../build/joystick_control/joystick_control.egg-info/requires.txt
+writing top-level names to ../../build/joystick_control/joystick_control.egg-info/top_level.txt
+writing manifest file '../../build/joystick_control/joystick_control.egg-info/SOURCES.txt'
+reading manifest file '../../build/joystick_control/joystick_control.egg-info/SOURCES.txt'
+writing manifest file '../../build/joystick_control/joystick_control.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /workspace/build/joystick_control/build
+creating /workspace/build/joystick_control/build/lib
+creating /workspace/build/joystick_control/build/lib/joystick_control
+copying joystick_control/__init__.py -> /workspace/build/joystick_control/build/lib/joystick_control
+copying joystick_control/joystick_node.py -> /workspace/build/joystick_control/build/lib/joystick_control
+running install
+running install_lib
+creating /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control
+copying /workspace/build/joystick_control/build/lib/joystick_control/__init__.py -> /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control
+copying /workspace/build/joystick_control/build/lib/joystick_control/joystick_node.py -> /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control
+byte-compiling /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control/__init__.py to __init__.cpython-312.pyc
+byte-compiling /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control/joystick_node.py to joystick_node.cpython-312.pyc
+running install_data
+creating /workspace/install/joystick_control/share/ament_index
+creating /workspace/install/joystick_control/share/ament_index/resource_index
+creating /workspace/install/joystick_control/share/ament_index/resource_index/packages
+copying resource/joystick_control -> /workspace/install/joystick_control/share/ament_index/resource_index/packages
+copying package.xml -> /workspace/install/joystick_control/share/joystick_control
+running install_egg_info
+Copying ../../build/joystick_control/joystick_control.egg-info to /workspace/install/joystick_control/lib/python3.12/site-packages/joystick_control-0.0.0-py3.12.egg-info
+running install_scripts
+Installing joystick_node script to /workspace/install/joystick_control/lib/joystick_control
+writing list of installed files to '/workspace/build/joystick_control/install.log'

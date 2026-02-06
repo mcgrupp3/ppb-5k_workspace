@@ -1,0 +1,24 @@
+[0.939s] Invoking command in '/workspace/src/movement': PYTHONPATH=/workspace/build/movement/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/movement/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/movement build --build-base /workspace/build/movement/build install --record /workspace/build/movement/install.log --single-version-externally-managed install_data
+[1.224s] running egg_info
+[1.243s] writing ../../build/movement/movement.egg-info/PKG-INFO
+[1.243s] writing dependency_links to ../../build/movement/movement.egg-info/dependency_links.txt
+[1.250s] writing entry points to ../../build/movement/movement.egg-info/entry_points.txt
+[1.251s] writing requirements to ../../build/movement/movement.egg-info/requires.txt
+[1.252s] writing top-level names to ../../build/movement/movement.egg-info/top_level.txt
+[1.291s] reading manifest file '../../build/movement/movement.egg-info/SOURCES.txt'
+[1.292s] writing manifest file '../../build/movement/movement.egg-info/SOURCES.txt'
+[1.292s] running build
+[1.292s] running build_py
+[1.292s] copying movement/motor_utils.py -> /workspace/build/movement/build/lib/movement
+[1.293s] running install
+[1.301s] running install_lib
+[1.320s] copying /workspace/build/movement/build/lib/movement/motor_utils.py -> /workspace/install/movement/lib/python3.12/site-packages/movement
+[1.321s] byte-compiling /workspace/install/movement/lib/python3.12/site-packages/movement/motor_utils.py to motor_utils.cpython-312.pyc
+[1.322s] running install_data
+[1.322s] running install_egg_info
+[1.343s] removing '/workspace/install/movement/lib/python3.12/site-packages/movement-0.0.0-py3.12.egg-info' (and everything under it)
+[1.343s] Copying ../../build/movement/movement.egg-info to /workspace/install/movement/lib/python3.12/site-packages/movement-0.0.0-py3.12.egg-info
+[1.344s] running install_scripts
+[1.476s] Installing manual_control script to /workspace/install/movement/lib/movement
+[1.477s] writing list of installed files to '/workspace/build/movement/install.log'
+[1.547s] Invoked command in '/workspace/src/movement' returned '0': PYTHONPATH=/workspace/build/movement/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/movement/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/movement build --build-base /workspace/build/movement/build install --record /workspace/build/movement/install.log --single-version-externally-managed install_data

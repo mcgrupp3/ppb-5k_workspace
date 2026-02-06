@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'manual_control = movement.manual_control_node:main',
         ],
     },
 )

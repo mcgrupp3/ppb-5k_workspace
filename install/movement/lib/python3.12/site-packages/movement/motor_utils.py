@@ -19,16 +19,16 @@ class MotorController:
     
     # Your validated motor configuration
     MOTOR_PINS = {
-        'front_left': {'pwm': 18, 'in1': 24, 'in2': 23},
-        'front_right': {'pwm': 19, 'in1': 20, 'in2': 16},
+        'front_left': {'pwm': 18, 'in1': 23, 'in2': 24},
+        'front_right': {'pwm': 19, 'in1': 16, 'in2': 20},
         'back_left': {'pwm': 12, 'in1': 6, 'in2': 5},
         'back_right': {'pwm': 13, 'in1': 7, 'in2': 8},
     }
     
     # Standby pins for each driver board
     STANDBY_PINS = {
-        'front': 25,  # Controls front motors (Driver 2)
-        'back': 26,   # Controls back motors (Driver 1)
+        'front': 26,  # Controls front motors (Driver 2)
+        'back': 25,   # Controls back motors (Driver 1)
     }
     
     def __init__(self, max_speed=100, pwm_freq=1000):
