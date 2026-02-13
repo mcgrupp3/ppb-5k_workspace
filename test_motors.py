@@ -10,39 +10,39 @@ import time
 # Pin definitions
 MOTOR_PINS = {
     'front_left': {
-        'pwm': 18,      # Was back_left
-        'in1': 23,
-        'in2': 24,
-        'driver': 'back',   # Now using back driver board
+        'pwm': 13,      # Was back_left
+        'in1': 5,
+        'in2': 6,
+        'driver': 'front',   # Now using back driver board
         'reverse': False
     },
     'front_right': {
-        'pwm': 19,      # Was back_right
-        'in1': 20,
-        'in2': 16,
-        'driver': 'back',   # Now using back driver board
+        'pwm': 12,      # Was back_right
+        'in1': 7,
+        'in2': 8,
+        'driver': 'front',   # Now using back driver board
         'reverse': False
     },
     'back_left': {
-        'pwm': 12,      # Was front_left
-        'in1': 5,
-        'in2': 6,
-        'driver': 'front',  # Now using front driver board
+        'pwm': 17,      # Was front_left
+        'in1': 27,
+        'in2': 22,
+        'driver': 'back',  # Now using front driver board
         'reverse': False
     },
     'back_right': {
-        'pwm': 13,      # Was front_right
-        'in1': 8,
-        'in2': 7,
-        'driver': 'front',  # Now using front driver board
+        'pwm': 10,      # Was front_right
+        'in1': 9,
+        'in2': 11,
+        'driver': 'back',  # Now using front driver board
         'reverse': False
     }
 }
 
 # Standby pins stay the same
 STANDBY_PINS = {
-    'front': 25,
-    'back': 26
+    'front': 26,
+    'back': 25
 }
 
 
