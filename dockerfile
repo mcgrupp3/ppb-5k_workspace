@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     git \
     '~nros-jazzy-rqt*' \
     ros-jazzy-joy \
+    ros-jazzy-foxglove-bridge \
     joystick \
     python3-gpiozero \
     python3-lgpio \
