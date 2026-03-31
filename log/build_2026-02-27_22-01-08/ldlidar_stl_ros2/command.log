@@ -1,6 +1,0 @@
-Invoking command in '/workspace/build/ldlidar_stl_ros2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /workspace/src/ldlidar_stl_ros2 -DCMAKE_INSTALL_PREFIX=/workspace/install/ldlidar_stl_ros2
-Invoked command in '/workspace/build/ldlidar_stl_ros2' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /workspace/src/ldlidar_stl_ros2 -DCMAKE_INSTALL_PREFIX=/workspace/install/ldlidar_stl_ros2
-Invoking command in '/workspace/build/ldlidar_stl_ros2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --build /workspace/build/ldlidar_stl_ros2 -- -j4 -l4
-Invoked command in '/workspace/build/ldlidar_stl_ros2' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --build /workspace/build/ldlidar_stl_ros2 -- -j4 -l4
-Invoking command in '/workspace/build/ldlidar_stl_ros2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --install /workspace/build/ldlidar_stl_ros2
-Invoked command in '/workspace/build/ldlidar_stl_ros2' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --install /workspace/build/ldlidar_stl_ros2
