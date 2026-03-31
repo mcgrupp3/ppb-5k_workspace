@@ -1,0 +1,7 @@
+{
+  "names": {
+    "colcon-core": {
+      "args": ["--base-paths", "src", "launch"]
+    }
+  }
+}

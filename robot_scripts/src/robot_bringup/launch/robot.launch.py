@@ -50,10 +50,11 @@ def generate_launch_description():
         executable='ldlidar_stl_ros2_node',
         name='ldlidar_node',
         parameters=[{
-            'product_name': 'LD19',
-            'topic_name':   '/scan',
+            'product_name': 'LDLiDAR_LD19',
+            'topic_name':   'scan',
             'port_name':    '/dev/ttyAMA4',
             'frame_id':     'base_laser',
+            'serial_baudrate': 230400,
         }],
         output='screen',
     )
