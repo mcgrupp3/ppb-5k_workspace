@@ -13,7 +13,7 @@ for _repo in Path(__file__).resolve().parents:
 import multiprocessing as mp
 import os
 from functools import partial
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 import numpy as np
 import cv2
 import threading
@@ -46,8 +46,7 @@ APP_NAME = Path(__file__).stem
 logger = get_logger(__name__)
 
 
-def parser_init():    
-    
+def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="UFLD_v2 inference",
         formatter_class=argparse.RawTextHelpFormatter
     )
@@ -128,8 +127,11 @@ def parser_init():
         ),
     )
 
-    args = parser.parse_args()    
-    return args
+    return parser
+
+
+def parser_init():
+    return build_argument_parser().parse_args()
 
 
 def resolve_capture_and_metadata(input_src: str, batch_size: int = 1):
@@ -238,7 +240,10 @@ def postprocess_output(output_queue: mp.Queue,
                        total_frames: Optional[int],
                        show_preview: bool = False,
                        quit_event: Optional[threading.Event] = None,
-                       preview_swap_rb: bool = False) -> None:
+                       preview_swap_rb: bool = False,
+                       write_video: bool = True,
+                       on_lane_frame: Optional[Callable[[list, int, int, int], None]] = None,
+                       ) -> None:
     """
     Post-process inference results, draw lane detections, and write output to a video.
 
@@ -246,21 +251,27 @@ def postprocess_output(output_queue: mp.Queue,
         output_queue (mp.Queue): Queue for output results.
         output_dir (str): Path to the output video file.
         ufld_processing (UFLDProcessing): Lane detection post-processing class.
+        write_video: If False, skip VideoWriter and ffmpeg postprocess (e.g. ZMQ-only mode).
+        on_lane_frame: If set, called each frame as on_lane_frame(lanes, frame_id, width, height)
+            after coordinates are computed and before drawing on the frame.
     """
     # Import tqdm here to avoid issues with multiprocessing
     from tqdm import tqdm
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     width, height = ufld_processing.get_original_frame_size()
 
     out_path = os.path.join(output_dir, "output.mp4")
-    output_video = cv2.VideoWriter(out_path, fourcc, 20, (width, height))
+    output_video = None
+    if write_video:
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        output_video = cv2.VideoWriter(out_path, fourcc, 20, (width, height))
 
     # Compute the scaled radius for the lane detection points
     radius = compute_scaled_radius(width, height)
 
     pbar = tqdm(total=total_frames, desc="Processing frames") if total_frames else tqdm(desc="Processing frames")
 
+    frame_id = 0
     while True:
         result = output_queue.get()
         if result is None:
@@ -270,11 +281,15 @@ def postprocess_output(output_queue: mp.Queue,
         output_tensor = np.concatenate(slices, axis=1)  # Shape: (1, total_features)
         lanes = ufld_processing.get_coordinates(output_tensor)
 
+        if on_lane_frame is not None:
+            on_lane_frame(lanes, frame_id, width, height)
+        frame_id += 1
 
         for lane in lanes:
             for coord in lane:
                 cv2.circle(original_frame, coord, radius, (0, 255, 0), -1)
-        output_video.write(original_frame.astype('uint8'))
+        if output_video is not None:
+            output_video.write(original_frame.astype('uint8'))
         if show_preview:
             disp = original_frame.astype(np.uint8)
             if preview_swap_rb and disp.ndim == 3 and disp.shape[2] >= 3:
@@ -287,28 +302,30 @@ def postprocess_output(output_queue: mp.Queue,
         pbar.update(1)
 
     pbar.close()
-    output_video.release()
+    if output_video is not None:
+        output_video.release()
     if show_preview:
         cv2.destroyAllWindows()
-    
-    # Convert to H.264 for better compatibility
-    import subprocess
-    logger.info("Converting video to H.264 format...")
-    temp_path = out_path.replace('.mp4', '_temp.mp4')
-    try:
-        result = subprocess.run([
-            'ffmpeg', '-y', '-loglevel', 'error', '-i', out_path, 
-            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
-            temp_path
-        ], check=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-        os.replace(temp_path, out_path)
-        logger.info("Video conversion complete!")
-    except subprocess.CalledProcessError as e:
-        logger.warning(f"Failed to convert video to H.264")
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-    except FileNotFoundError:
-        logger.warning("ffmpeg not found, keeping original mp4v format")
+
+    if write_video and output_video is not None:
+        # Convert to H.264 for better compatibility
+        import subprocess
+        logger.info("Converting video to H.264 format...")
+        temp_path = out_path.replace('.mp4', '_temp.mp4')
+        try:
+            subprocess.run([
+                'ffmpeg', '-y', '-loglevel', 'error', '-i', out_path,
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                temp_path
+            ], check=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            os.replace(temp_path, out_path)
+            logger.info("Video conversion complete!")
+        except subprocess.CalledProcessError:
+            logger.warning("Failed to convert video to H.264")
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except FileNotFoundError:
+            logger.warning("ffmpeg not found, keeping original mp4v format")
 
 
 def inference_callback(
@@ -402,6 +419,8 @@ def run_inference_pipeline(
     total_frames: Optional[int],
     show_preview: bool = False,
     preview_swap_rb: bool = False,
+    write_video: bool = True,
+    on_lane_frame: Optional[Callable[[list, int, int, int], None]] = None,
 ) -> None:
     """
     Run lane detection inference using HailoAsyncInference and manage the video processing pipeline.
@@ -417,6 +436,8 @@ def run_inference_pipeline(
         total_frames: Frame count for progress bar, or None for live camera/stream.
         show_preview: If True, open an OpenCV window with live annotated frames.
         preview_swap_rb: If True, swap R/B in the preview only (--preview-swap-rb).
+        write_video: If False, do not write output.mp4 (telemetry-only runs).
+        on_lane_frame: Optional callback each frame (lanes, frame_id, width, height).
     """
 
     input_queue = mp.Queue(MAX_INPUT_QUEUE_SIZE)
@@ -448,6 +469,8 @@ def run_inference_pipeline(
             show_preview,
             quit_event,
             preview_swap_rb,
+            write_video,
+            on_lane_frame,
         ),
     )
 
@@ -463,7 +486,10 @@ def run_inference_pipeline(
     preprocess_thread.join()
     postprocess_thread.join()
 
-    logger.success(f"Inference was successful! Results saved in {output_dir}")
+    if write_video:
+        logger.success(f"Inference was successful! Results saved in {output_dir}")
+    else:
+        logger.success("Inference finished (video output disabled).")
 
 
 
@@ -520,4 +546,6 @@ if __name__ == "__main__":
             and (not args.no_preview_swap_rb)
             and (input_type == "rpi")
         ),
+        write_video=True,
+        on_lane_frame=None,
     )
