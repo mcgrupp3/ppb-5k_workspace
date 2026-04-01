@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-import multiprocessing as mp
 import sys
+from pathlib import Path
+
+# Repo root on sys.path so `import hailo_apps` works when run as `python3 lane_detection.py`
+# from this folder (without requiring pip install -e for that session).
+for _repo in Path(__file__).resolve().parents:
+    if (_repo / "hailo_apps" / "config" / "config_manager.py").exists():
+        if str(_repo) not in sys.path:
+            sys.path.insert(0, str(_repo))
+        break
+
+import multiprocessing as mp
 import os
 from functools import partial
-from pathlib import Path
+from typing import Any, Optional
 import numpy as np
 import cv2
 import threading
@@ -15,27 +25,22 @@ try:
     from hailo_apps.python.core.common.hailo_logger import get_logger, init_logging, level_from_args
     from hailo_apps.python.core.common.hailo_inference import HailoInfer
     from hailo_apps.python.core.common.core import handle_and_resolve_args
+    from hailo_apps.python.core.common.toolbox import init_input_source
     from hailo_apps.python.core.common.defines import (
         MAX_INPUT_QUEUE_SIZE,
         MAX_OUTPUT_QUEUE_SIZE,
         MAX_ASYNC_INFER_JOBS
     )
-except ImportError:
-    repo_root = None
-    for p in Path(__file__).resolve().parents:
-        if (p / "hailo_apps" / "config" / "config_manager.py").exists():
-            repo_root = p
-            break
-    if repo_root is not None:
-        sys.path.insert(0, str(repo_root))
-    from hailo_apps.python.core.common.hailo_logger import get_logger, init_logging, level_from_args
-    from hailo_apps.python.core.common.hailo_inference import HailoInfer
-    from hailo_apps.python.core.common.core import handle_and_resolve_args
-    from hailo_apps.python.core.common.defines import (
-        MAX_INPUT_QUEUE_SIZE,
-        MAX_OUTPUT_QUEUE_SIZE,
-        MAX_ASYNC_INFER_JOBS
+except ImportError as _import_err:
+    sys.stderr.write(
+        "\nCould not import Hailo packages (hailo_apps / hailo_platform).\n"
+        "Use the hailo-apps virtualenv and complete install on the Pi:\n"
+        "  cd .../vision_scripts/hailo-apps\n"
+        "  source setup_env.sh\n"
+        "  # If not done yet: sudo ./install.sh\n"
+        "Then run lane_detection.py again (hailo_platform comes from HailoRT, e.g. hailo-all).\n\n"
     )
+    raise _import_err from None
 
 APP_NAME = Path(__file__).stem
 logger = get_logger(__name__)
@@ -103,64 +108,137 @@ def parser_init():
         ),
     )
 
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help=(
+            "Show a live OpenCV window with lane overlays (same idea as hailo-detect-simple on rpi). "
+            "Requires a display (HDMI, or SSH with X11 forwarding / VNC). Press q to stop. "
+            "Still writes output.mp4 under --output-dir unless you only need preview."
+        ),
+    )
+
+    parser.add_argument(
+        "--no-preview-swap-rb",
+        action="store_true",
+        help=(
+            "With --show on the Pi camera (rpi): disable the default red/blue channel swap in the preview "
+            "window. By default we swap R/B for preview only (fixes blue cast on many Pi 5 + libcamera setups). "
+            "Does not change the saved output.mp4."
+        ),
+    )
+
     args = parser.parse_args()    
     return args
 
 
-def get_video_info(video_path):
+def resolve_capture_and_metadata(input_src: str, batch_size: int = 1):
     """
-    Get the dimensions (width and height).
-
-    Args:
-        video_path (str): Path to the input video file.
+    Open input via shared toolbox (supports rpi/usb/stream/video/images).
 
     Returns:
-        Tuple[int, int]: A tuple containing frame width and frame height.
-
-    Raises:
-        ValueError: If the video file cannot be opened.
+        cap, images, input_type, frame_width, frame_height, total_frames_or_none
     """
-    vidcap = cv2.VideoCapture(video_path)
-    if not vidcap.isOpened():
-        vidcap.release()
-        logger.error(f"Cannot open video file {video_path}")
-        raise ValueError(f"Cannot open video file {video_path}")
-    frame_width = int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-    vidcap.release()
-    return frame_width, frame_height, frame_count
+    cap, images, input_type = init_input_source(input_src, batch_size, None)
+
+    if images is not None:
+        if not images:
+            raise ValueError(f"No images loaded from input {input_src!r}")
+        frame_height, frame_width = images[0].shape[:2]
+        return cap, images, input_type, frame_width, frame_height, len(images)
+
+    if cap is None:
+        raise ValueError(f"No input source could be opened for {input_src!r}")
+
+    # cap.get() may return None on some backends (e.g. PiCamera2CaptureAdapter).
+    def _cap_int(prop_id: int) -> int:
+        v = cap.get(prop_id)
+        if v is None:
+            return 0
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return 0
+
+    frame_width = _cap_int(cv2.CAP_PROP_FRAME_WIDTH)
+    frame_height = _cap_int(cv2.CAP_PROP_FRAME_HEIGHT)
+    if frame_width <= 0 or frame_height <= 0:
+        ok, frame = cap.read()
+        if not ok or frame is None:
+            raise ValueError(f"Cannot read frames or dimensions from input {input_src!r}")
+        frame_height, frame_width = frame.shape[:2]
+        if input_type == "video":
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    frame_count = _cap_int(cv2.CAP_PROP_FRAME_COUNT)
+    if input_type in ("usb", "rpi", "stream") or frame_count <= 0:
+        total_frames = None
+    else:
+        total_frames = frame_count
+
+    return cap, images, input_type, frame_width, frame_height, total_frames
 
 
-def preprocess_input(video_path: str,
-                     input_queue: mp.Queue, width: int, height: int,
-                     ufld_processing: UFLDProcessing) -> None:
+def preprocess_input(
+    cap: Optional[Any],
+    images: Optional[list],
+    input_type: str,
+    input_queue: mp.Queue,
+    width: int,
+    height: int,
+    ufld_processing: UFLDProcessing,
+    quit_event: Optional[threading.Event] = None,
+) -> None:
     """
-    Read video frames, preprocess them, and put them into the input queue for inference.
+    Read video frames or images, preprocess them, and put them into the input queue for inference.
 
     Args:
-        video_path (str): Path to the input video.
+        cap: OpenCV VideoCapture, PiCamera2 adapter, or None for image lists.
+        images: List of frames when using image file/dir input, else None.
+        input_type: Kind of source (video, rpi, usb, stream, images).
         input_queue (mp.Queue): Queue for input frames.
         width (int): Input frame width for resizing.
         height (int): Input frame height for resizing.
         ufld_processing (UFLDProcessing): Lane detection preprocessing class.
     """
-    vidcap = cv2.VideoCapture(video_path)
-    success, frame = vidcap.read()
+    try:
+        if images is not None:
+            for frame_rgb in images:
+                if quit_event is not None and quit_event.is_set():
+                    input_queue.put(None)
+                    return
+                frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+                resized_frame = ufld_processing.resize(frame, height, width)
+                input_queue.put(([frame], [resized_frame]))
+            input_queue.put(None)
+            return
 
-    while success:
-        resized_frame = ufld_processing.resize(frame, height, width)
-        input_queue.put(([frame], [resized_frame]))
+        assert cap is not None
+        while True:
+            if quit_event is not None and quit_event.is_set():
+                input_queue.put(None)
+                return
+            success, frame = cap.read()
+            if not success or frame is None:
+                break
+            # Copy so async inference/postprocess never races the next camera frame mutating buffer memory.
+            frame = np.ascontiguousarray(frame.copy())
+            resized_frame = ufld_processing.resize(frame, height, width)
+            input_queue.put(([frame], [resized_frame]))
 
-
-        success, frame = vidcap.read()
-
-    input_queue.put(None)  # Sentinel value to signal the end of processing
+        input_queue.put(None)
+    finally:
+        if cap is not None:
+            cap.release()
 
 
 def postprocess_output(output_queue: mp.Queue,
-                       output_dir: str,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                       ufld_processing: UFLDProcessing) -> None:
+                       output_dir: str,
+                       ufld_processing: UFLDProcessing,
+                       total_frames: Optional[int],
+                       show_preview: bool = False,
+                       quit_event: Optional[threading.Event] = None,
+                       preview_swap_rb: bool = False) -> None:
     """
     Post-process inference results, draw lane detections, and write output to a video.
 
@@ -181,7 +259,7 @@ def postprocess_output(output_queue: mp.Queue,
     # Compute the scaled radius for the lane detection points
     radius = compute_scaled_radius(width, height)
 
-    pbar = tqdm(total=total_frames, desc="Processing frames")
+    pbar = tqdm(total=total_frames, desc="Processing frames") if total_frames else tqdm(desc="Processing frames")
 
     while True:
         result = output_queue.get()
@@ -197,10 +275,21 @@ def postprocess_output(output_queue: mp.Queue,
             for coord in lane:
                 cv2.circle(original_frame, coord, radius, (0, 255, 0), -1)
         output_video.write(original_frame.astype('uint8'))
+        if show_preview:
+            disp = original_frame.astype(np.uint8)
+            if preview_swap_rb and disp.ndim == 3 and disp.shape[2] >= 3:
+                disp = disp.copy()
+                disp[:, :, [0, 2]] = disp[:, :, [2, 0]]
+            cv2.imshow("Lane detection", disp)
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q") and quit_event is not None:
+                quit_event.set()
         pbar.update(1)
 
     pbar.close()
     output_video.release()
+    if show_preview:
+        cv2.destroyAllWindows()
     
     # Convert to H.264 for better compatibility
     import subprocess
@@ -303,40 +392,63 @@ def infer(hailo_inference, input_queue, output_queue):
 
 
 def run_inference_pipeline(
-    video_path: str,
+    cap: Optional[Any],
+    images: Optional[list],
+    input_type: str,
     net_path: str,
     batch_size: int,
     output_dir: str,
-    ufld_processing: UFLDProcessing
+    ufld_processing: UFLDProcessing,
+    total_frames: Optional[int],
+    show_preview: bool = False,
+    preview_swap_rb: bool = False,
 ) -> None:
     """
     Run lane detection inference using HailoAsyncInference and manage the video processing pipeline.
 
     Args:
-        video_path (str): Path to the input video.
+        cap: Video/camera capture, or None when using image list input.
+        images: Image list input, or None when using cap.
+        input_type: Source kind from init_input_source (e.g. video, rpi, images).
         net_path (str): Path to the HEF model file.
         batch_size (int): Number of frames per batch.
         output_dir (str): Path to save the output video.
         ufld_processing (UFLDProcessing): Lane detection processing class.
+        total_frames: Frame count for progress bar, or None for live camera/stream.
+        show_preview: If True, open an OpenCV window with live annotated frames.
+        preview_swap_rb: If True, swap R/B in the preview only (--preview-swap-rb).
     """
 
     input_queue = mp.Queue(MAX_INPUT_QUEUE_SIZE)
     output_queue = mp.Queue(MAX_OUTPUT_QUEUE_SIZE)
     hailo_inference = HailoInfer(net_path, batch_size, output_type="FLOAT32")
-
+    quit_event: Optional[threading.Event] = threading.Event() if show_preview else None
 
     preprocessed_frame_height, preprocessed_frame_width, _ = hailo_inference.get_input_shape()
     preprocess_thread = threading.Thread(
         target=preprocess_input,
-        args=(video_path,
-              input_queue,
-              preprocessed_frame_width,
-              preprocessed_frame_height,
-              ufld_processing)
+        args=(
+            cap,
+            images,
+            input_type,
+            input_queue,
+            preprocessed_frame_width,
+            preprocessed_frame_height,
+            ufld_processing,
+            quit_event,
+        ),
     )
     postprocess_thread = threading.Thread(
         target=postprocess_output,
-        args=(output_queue, output_dir, ufld_processing)
+        args=(
+            output_queue,
+            output_dir,
+            ufld_processing,
+            total_frames,
+            show_preview,
+            quit_event,
+            preview_swap_rb,
+        ),
     )
 
     infer_thread = threading.Thread(
@@ -361,11 +473,25 @@ if __name__ == "__main__":
     args = parser_init()
     init_logging(level=level_from_args(args))
     handle_and_resolve_args(args, APP_NAME)
-    print(args.input)
+    if args.output_dir:
+        os.makedirs(args.output_dir, exist_ok=True)
+
+    if args.show:
+        if sys.platform != "win32" and not os.environ.get("DISPLAY"):
+            logger.warning(
+                "DISPLAY is not set — cv2.imshow cannot open a window (typical over plain SSH). "
+                "Use the Pi's desktop terminal, or: export DISPLAY=:0 (if a GUI session is logged in), "
+                "or SSH with X11: ssh -Y user@pi, or VNC. "
+                "Ensure OpenCV is GUI-capable (not opencv-python-headless only)."
+            )
+
     try:
-        original_frame_width, original_frame_height, total_frames = get_video_info(args.input)
+        cap, images, input_type, original_frame_width, original_frame_height, total_frames = (
+            resolve_capture_and_metadata(args.input, 1)
+        )
     except ValueError as e:
         logger.error(e)
+        sys.exit(1)
 
     ufld_processing = UFLDProcessing(
         num_cell_row=100,
@@ -376,13 +502,22 @@ if __name__ == "__main__":
         crop_ratio=0.8,
         original_frame_width=original_frame_width,
         original_frame_height=original_frame_height,
-        total_frames=total_frames,
+        total_frames=total_frames if total_frames is not None else 0,
     )
 
     run_inference_pipeline(
-        args.input,
+        cap,
+        images,
+        input_type,
         args.hef_path,
         batch_size=1,
         output_dir=args.output_dir,
         ufld_processing=ufld_processing,
+        total_frames=total_frames,
+        show_preview=args.show,
+        preview_swap_rb=(
+            args.show
+            and (not args.no_preview_swap_rb)
+            and (input_type == "rpi")
+        ),
     )

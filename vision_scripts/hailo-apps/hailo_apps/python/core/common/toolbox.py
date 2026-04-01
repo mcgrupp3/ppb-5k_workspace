@@ -68,6 +68,14 @@ class PiCamera2CaptureAdapter:
 
         if frame is None:
             return False, None
+        # Picamera2 main stream is RGB order (RGB888 / XRGB). OpenCV uses BGR everywhere
+        # (imshow, VideoWriter, cv2.circle). One consistent RGB→BGR conversion here avoids
+        # blue/wrong tint when BGR888 mode misreports memory layout on some libcamera stacks.
+        if frame.ndim != 3 or frame.shape[2] < 3:
+            return False, None
+        if frame.shape[2] == 4:
+            frame = frame[:, :, :3]
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         return True, frame
 
     def get(self, prop_id: int) -> float:
@@ -243,25 +251,29 @@ def open_rpi_camera():
         logger.error(f"Picamera2 not available: {e}")
         return None
 
+    picam2 = None
     try:
         picam2 = Picamera2()
+        # RGB888: documented RGB order from capture_array(). We always convert to BGR in
+        # PiCamera2CaptureAdapter.read() for OpenCV. (BGR888 has caused channel/order mismatches
+        # and blue-tint previews on some Pi 5 + libcamera builds.)
         main = {"size": (800, 600), "format": "RGB888"}
         config = picam2.create_video_configuration(main=main, controls={"FrameRate": 30})
-
         picam2.configure(config)
         picam2.start()
         return PiCamera2CaptureAdapter(picam2)
 
     except Exception as e:
         logger.error(f"Failed to open RPi camera: {e}")
-        try:
-            picam2.stop()
-        except Exception:
-            pass
-        try:
-            picam2.close()
-        except Exception:
-            pass
+        if picam2 is not None:
+            try:
+                picam2.stop()
+            except Exception:
+                pass
+            try:
+                picam2.close()
+            except Exception:
+                pass
         return None
 
 
