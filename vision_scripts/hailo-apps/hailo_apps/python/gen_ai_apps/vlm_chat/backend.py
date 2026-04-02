@@ -1,11 +1,7 @@
-import json
-import re
 import time
 import multiprocessing as mp
 import numpy as np
 import cv2
-from typing import Any, List, Optional
-
 from hailo_platform import VDevice
 from hailo_platform.genai import VLM
 from hailo_apps.python.core.common.defines import SHARED_VDEVICE_GROUP_ID
@@ -13,85 +9,6 @@ from hailo_apps.python.core.common.core import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)
-
-# Must match ``convert_resize_image`` default — the model only ever sees this resolution.
-VLM_INPUT_WIDTH = 336
-VLM_INPUT_HEIGHT = 336
-
-
-def try_parse_json_from_answer(text: str) -> Optional[dict[str, Any]]:
-    """
-    Best-effort parse of a JSON object from the model reply (fenced ```json``` or first {...}).
-    Used for coordinates / grounding-style answers without changing the Hailo VLM API.
-    """
-    text = (text or "").strip()
-    m = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
-    if m:
-        try:
-            out = json.loads(m.group(1).strip())
-            return out if isinstance(out, dict) else None
-        except json.JSONDecodeError:
-            pass
-    start, end = text.find("{"), text.rfind("}")
-    if start != -1 and end > start:
-        try:
-            out = json.loads(text[start : end + 1])
-            return out if isinstance(out, dict) else None
-        except json.JSONDecodeError:
-            pass
-    return None
-
-
-def _point_2d_from_dict(obj: dict[str, Any]) -> Optional[List[float]]:
-    """Pick a single [x, y] from a flat grounding dict."""
-    if "point_2d" in obj:
-        p = obj["point_2d"]
-        if isinstance(p, (list, tuple)) and len(p) >= 2:
-            return [float(p[0]), float(p[1])]
-    if "center_xy" in obj:
-        c = obj["center_xy"]
-        if isinstance(c, (list, tuple)) and len(c) >= 2:
-            return [float(c[0]), float(c[1])]
-    bb = obj.get("bbox_xyxy") or obj.get("bbox")
-    if isinstance(bb, (list, tuple)) and len(bb) >= 4:
-        x1, y1, x2, y2 = (float(bb[0]), float(bb[1]), float(bb[2]), float(bb[3]))
-        return [(x1 + x2) / 2.0, (y1 + y2) / 2.0]
-    return None
-
-
-def extract_point_2d_from_grounding(
-    parsed: Optional[dict[str, Any]],
-    answer_text: str,
-) -> Optional[List[float]]:
-    """
-    Resolve a single ``point_2d`` = [x, y] in **VLM input pixel space** (see ``VLM_INPUT_*``).
-
-    Order: ``parsed["point_2d"]`` → ``center_xy`` → center of ``bbox_xyxy`` →
-    first element of ``objects[]`` with any of those keys → Qwen-style ``<|box_start|>...<|box_end|>`` center.
-    """
-    if parsed:
-        pt = _point_2d_from_dict(parsed)
-        if pt is not None:
-            return pt
-        objs = parsed.get("objects")
-        if isinstance(objs, list):
-            for o in objs:
-                if isinstance(o, dict):
-                    pt = _point_2d_from_dict(o)
-                    if pt is not None:
-                        return pt
-
-    # Qwen2-VL style grounding tokens (text stream; coordinates may be model-specific scale)
-    m = re.search(
-        r"<\|box_start\|>\s*\(([\d.]+),\s*([\d.]+)\)\s*,\s*\(([\d.]+),\s*([\d.]+)\)\s*<\|box_end\|>",
-        answer_text or "",
-    )
-    if m:
-        x1, y1, x2, y2 = map(float, m.groups())
-        return [(x1 + x2) / 2.0, (y1 + y2) / 2.0]
-
-    return None
-
 
 def vlm_worker_process(request_queue: mp.Queue, response_queue: mp.Queue, hef_path: str,
                       max_tokens: int, temperature: float, seed: int) -> None:
@@ -182,22 +99,15 @@ def _hailo_inference_inner(image: np.ndarray, prompts: dict, vlm: VLM,
 
         vlm.clear_context()
         end_time = time.time()
-        answer_clean = response.replace('<|redacted_im_end|>', '').strip()
-        parsed = try_parse_json_from_answer(answer_clean)
-        point_2d = extract_point_2d_from_grounding(parsed, answer_clean)
         return {
-            'answer': answer_clean,
-            'time': f"{end_time - start_time:.2f} seconds",
-            'parsed_json': parsed,
-            'point_2d': point_2d,
+            'answer': response.replace('<|im_end|>', '').strip(),
+            'time': f"{end_time - start_time:.2f} seconds"
         }
     except Exception as e:
         logger.error(f"Inference inner error: {e}")
         return {
             'answer': f'Error: {str(e)}',
-            'time': f"{time.time() - start_time:.2f} seconds",
-            'parsed_json': None,
-            'point_2d': None,
+            'time': f"{time.time() - start_time:.2f} seconds"
         }
 
 class Backend:
@@ -242,8 +152,7 @@ class Backend:
             timeout (int, optional): Timeout in seconds. Defaults to 30.
 
         Returns:
-            dict: ``answer``, ``time``, optional ``parsed_json``, and ``point_2d`` (``[x, y]`` or
-            ``None``) in VLM input pixel space — see ``VLM_INPUT_WIDTH`` / ``VLM_INPUT_HEIGHT``.
+            dict: Inference result containing answer and time.
         """
         request_data = {
             'numpy_image': self.convert_resize_image(image),
@@ -270,30 +179,15 @@ class Backend:
             response = self._response_queue.get(timeout=timeout)
             if response['error']:
                 logger.error(f"Backend inference error: {response['error']}")
-                return {
-                    'answer': f"Error: {response['error']}",
-                    'time': 'error',
-                    'parsed_json': None,
-                    'point_2d': None,
-                }
+                return {'answer': f"Error: {response['error']}", 'time': 'error'}
             return response['result']
         except mp.TimeoutError:
             logger.warning(f"Inference timed out after {timeout} seconds.")
             self._cleanup_queues()
-            return {
-                'answer': f'Request timed out after {timeout} seconds',
-                'time': f'{timeout}+ seconds',
-                'parsed_json': None,
-                'point_2d': None,
-            }
+            return {'answer': f'Request timed out after {timeout} seconds', 'time': f'{timeout}+ seconds'}
         except Exception as e:
             logger.error(f"Queue error during inference: {e}")
-            return {
-                'answer': f'Queue error: {str(e)}',
-                'time': 'error',
-                'parsed_json': None,
-                'point_2d': None,
-            }
+            return {'answer': f'Queue error: {str(e)}', 'time': 'error'}
 
     def _cleanup_queues(self) -> None:
         """Cleanup queues after timeout or error."""
@@ -309,10 +203,7 @@ class Backend:
                 break
 
     @staticmethod
-    def convert_resize_image(
-        image_array: np.ndarray,
-        target_size: tuple[int, int] = (VLM_INPUT_WIDTH, VLM_INPUT_HEIGHT),
-    ) -> np.ndarray:
+    def convert_resize_image(image_array: np.ndarray, target_size: tuple[int, int] = (336, 336)) -> np.ndarray:
         """
         Convert and resize image for VLM using central crop to maintain aspect ratio.
 
