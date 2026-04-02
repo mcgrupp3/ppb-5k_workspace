@@ -9,7 +9,7 @@ import time
 from typing import Optional, Callable, Any
 
 os.environ["QT_QPA_PLATFORM"] = 'xcb'
-from hailo_apps.python.gen_ai_apps.vlm_chat.backend import Backend
+from hailo_apps.python.gen_ai_apps.vlm_chat.backend import Backend, VLM_INPUT_HEIGHT, VLM_INPUT_WIDTH
 from hailo_apps.python.core.common.core import get_standalone_parser, get_resource_path, get_logger, handle_list_models_flag, resolve_hef_path
 from hailo_apps.python.core.common.camera_utils import get_usb_video_devices
 from hailo_apps.python.core.gstreamer.gstreamer_helper_pipelines import get_source_type
@@ -23,10 +23,19 @@ from hailo_apps.python.core.common.defines import (
 )
 
 # Configuration Constants
-MAX_TOKENS = 200
+MAX_TOKENS = 280
 TEMPERATURE = 0.1
 SEED = 42
-SYSTEM_PROMPT = "You are a helpful assistant that analyzes images and answers questions about them."
+SYSTEM_PROMPT = (
+    "You are a helpful assistant that analyzes images and answers questions about them. "
+    f"The model always sees a {VLM_INPUT_WIDTH}x{VLM_INPUT_HEIGHT} pixel image (origin top-left, x right, y down). "
+    "When the user asks where an object is or for pixel locations, you MUST reply with a markdown JSON code block "
+    '(```json ... ```) containing one JSON object that includes '
+    '"point_2d": [x, y] as the **center point** of the detected object in those pixel coordinates '
+    '(integers from 0 to width-1 / height-1). You may also include "object" (name), '
+    '"bbox_xyxy": [x1, y1, x2, y2], or "objects": [ {...}, ... ] for multiple items. '
+    "A short plain-text note after the block is allowed."
+)
 INFERENCE_TIMEOUT = 60
 SAVE_FRAMES = False
 
@@ -242,12 +251,18 @@ class VLMChatApp:
                 elif self.current_state == STATE_PROCESSING:
                     if vlm_future and vlm_future.done():
                         try:
-                            # We get the result but we don't print the full answer again
-                            # because it was streamed by the worker process.
-                            # We only handle errors or unexpected cases here.
-                            # You can get the full answer by calling result.get('answer')
-                            # print(f"\n\nAnswer: {result.get('answer')}")
+                            # Full text was streamed by the worker; result dict includes parsed_json if the
+                            # model followed the JSON-in-code-block convention (see SYSTEM_PROMPT).
                             result = vlm_future.result()
+                            parsed = result.get("parsed_json")
+                            point_2d = result.get("point_2d")
+                            if parsed:
+                                print(f"\n\n[parsed JSON] {parsed}")
+                            if point_2d is not None:
+                                print(
+                                    f"\n[point_2d] {point_2d}  "
+                                    f"(VLM frame: {VLM_INPUT_WIDTH}x{VLM_INPUT_HEIGHT} px, origin top-left)"
+                                )
                         except Exception as e:
                             logger.error(f"Error getting future result: {e}")
                             print(f"\nError processing request: {e}")
