@@ -16,6 +16,12 @@ RUN apt-get update && apt-get install -y \
     python3-gpiozero \
     python3-lgpio \
     python3-pygame \
+    python3-smbus2 \
+    i2c-tools \
+    ros-jazzy-slam-toolbox \
+    ros-jazzy-rf2o-laser-odometry \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 # Source ROS2 setup in bashrc
