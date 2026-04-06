@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'vlm_vision_node = vlm_vision.vlm_vision_node:main',
+            'vlm_zmq_listener = vlm_vision.zmq_check_listener:main',
         ],
     },
 )

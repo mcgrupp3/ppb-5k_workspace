@@ -4,6 +4,7 @@ import os
 import cv2
 import sys
 import concurrent.futures
+import json
 import select
 import time
 from typing import Optional, Callable, Any
@@ -39,21 +40,126 @@ STATE_RESULT = "RESULT"
 # Initialize logger
 logger = get_logger(__name__)
 
+
+def open_vlm_camera(camera: Any, camera_type: str) -> tuple[Callable[[], Any], Callable[[], None], str]:
+    """
+    Open a camera and return (get_frame, cleanup, camera_label).
+
+    get_frame returns a numpy array (RGB for RPI, BGR for USB/OpenCV) or None on failure.
+    """
+    if camera_type == RPI_NAME_I:
+        try:
+            from picamera2 import Picamera2
+            picam2 = Picamera2()
+            config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
+            picam2.configure(config)
+            picam2.start()
+            get_frame = lambda: picam2.capture_array()
+            cleanup = lambda: picam2.stop()
+            return get_frame, cleanup, "RPI"
+        except (ImportError, Exception) as e:
+            logger.error(f"Error initializing RPI camera: {e}")
+            raise
+    cap = cv2.VideoCapture(camera)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    get_frame = lambda: (lambda r: r[1] if r[0] else None)(cap.read())
+    cleanup = lambda: cap.release()
+    return get_frame, cleanup, "USB"
+
+
+def resolve_vlm_video_source(video_source: Any) -> Any:
+    """Resolve 'usb' to a concrete device path, same as the CLI entrypoint."""
+    if video_source == USB_CAMERA:
+        logger.debug("USB_CAMERA detected; scanning USB devices...")
+        devices = get_usb_video_devices()
+        if not devices:
+            raise RuntimeError(
+                'Input is "usb" but no USB camera was found. Connect a camera or pass a device path or index.'
+            )
+        logger.debug(f"Using USB camera: {devices[0]}")
+        return devices[0]
+    return video_source
+
+
+def run_vlm_chat(
+    prompt: str,
+    *,
+    hef_path: Optional[str] = None,
+    system_prompt: str = SYSTEM_PROMPT,
+    max_tokens: int = MAX_TOKENS,
+    temperature: float = TEMPERATURE,
+    seed: int = SEED,
+    inference_timeout: int = INFERENCE_TIMEOUT,
+    warmup_frames: int = 15,
+) -> dict[str, Any]:
+    """
+    Capture one frame from the Raspberry Pi camera (Picamera2 / libcamera, e.g. Camera Module 3),
+    then run VLM inference with ``prompt``. Preprocessing matches the interactive :class:`VLMChatApp`
+    path (model input crop, then BGR for :meth:`Backend.vlm_inference`).
+
+    Returns a JSON-serializable dict (``answer``, ``time``), same as :meth:`Backend.vlm_inference`.
+    Use ``json.dumps(result)`` if you need a JSON string.
+
+    ``warmup_frames`` frames are read and discarded so auto-exposure can settle; the next frame is used.
+    """
+    resolved_hef = resolve_hef_path(hef_path, app_name=VLM_CHAT_APP, arch=HAILO10H_ARCH)
+    if resolved_hef is None:
+        raise RuntimeError("Failed to resolve HEF path for the VLM model.")
+
+    # RPI branch ignores the camera index; Picamera2 uses the default sensor (e.g. CM3).
+    get_frame, cleanup, _ = open_vlm_camera(0, RPI_NAME_I)
+    frame_bgr = None
+    try:
+        n = max(0, warmup_frames) + 1
+        raw_frame = None
+        for _ in range(n):
+            raw_frame = get_frame()
+            if raw_frame is None:
+                return {"answer": "Failed to capture frame from Raspberry Pi camera", "time": "error"}
+        rgb_frame = Backend.convert_resize_image(raw_frame)
+        frame_bgr = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+    finally:
+        cleanup()
+
+    backend: Optional[Backend] = None
+    try:
+        backend = Backend(
+            hef_path=str(resolved_hef),
+            max_tokens=max_tokens,
+            temperature=temperature,
+            seed=seed,
+            system_prompt=system_prompt,
+        )
+        return backend.vlm_inference(frame_bgr, prompt, inference_timeout)
+    finally:
+        if backend is not None:
+            backend.close()
+
+
+def run_vlm_chat_json(prompt: str, **kwargs: Any) -> str:
+    """Same as :func:`run_vlm_chat` but returns a JSON string."""
+    return json.dumps(run_vlm_chat(prompt, **kwargs), ensure_ascii=False)
+
+
 class VLMChatApp:
     """
     Main application class for VLM Chat.
     Handles video display, user input, and interaction with the VLM backend.
     """
-    def __init__(self, camera: Any, camera_type: str):
+    def __init__(self, camera: Any, camera_type: str, hef_path: str):
         """
         Initialize the VLM Chat Application.
 
         Args:
             camera (Any): Camera source (device index or connection object).
             camera_type (str): Type of camera ('usb' or 'rpi').
+            hef_path (str): Resolved path to the VLM HEF model.
         """
         self.camera = camera
         self.camera_type = camera_type
+        self.hef_path = hef_path
         self.running = True
         self.executor = concurrent.futures.ThreadPoolExecutor()
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -94,29 +200,7 @@ class VLMChatApp:
         Returns:
             tuple: (get_frame_callback, cleanup_callback, camera_name)
         """
-        if self.camera_type == RPI_NAME_I:
-            try:
-                from picamera2 import Picamera2
-                picam2 = Picamera2()
-                config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
-                picam2.configure(config)
-                picam2.start()
-                get_frame = lambda: picam2.capture_array()
-                cleanup = lambda: picam2.stop()
-                camera_name = "RPI"
-                return get_frame, cleanup, camera_name
-            except (ImportError, Exception) as e:
-                logger.error(f"Error initializing RPI camera: {e}")
-                raise
-        else:
-            cap = cv2.VideoCapture(self.camera)
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            cap.set(cv2.CAP_PROP_FPS, 30)
-            get_frame = lambda: (lambda r: r[1] if r[0] else None)(cap.read())
-            cleanup = lambda: cap.release()
-            camera_name = "USB"
-            return get_frame, cleanup, camera_name
+        return open_vlm_camera(self.camera, self.camera_type)
 
     def _print_state_prompt(self):
         """Print prompt based on current state."""
@@ -148,7 +232,7 @@ class VLMChatApp:
         try:
             # Use globally resolved hef_path
             self.backend = Backend(
-                hef_path=str(hef_path),
+                hef_path=str(self.hef_path),
                 max_tokens=MAX_TOKENS,
                 temperature=TEMPERATURE,
                 seed=SEED,
@@ -295,19 +379,14 @@ if __name__ == "__main__":
         logger.error("Failed to resolve HEF path for VLM model. Exiting.")
         sys.exit(1)
 
-    video_source = options_menu.input
-    if video_source == USB_CAMERA:
-        logger.debug("USB_CAMERA detected; scanning USB devices...")
-        video_source = get_usb_video_devices()
-        if not video_source:
-            logger.error("No USB camera found for '--input usb'")
-            print(
-                'Provided argument "--input" is set to "usb", however no available USB cameras found. Please connect a camera or specifiy different input method.'
-            )
-            sys.exit(1)
-        else:
-            logger.debug(f"Using USB camera: {video_source[0]}")
-            video_source = video_source[0]
+    try:
+        video_source = resolve_vlm_video_source(options_menu.input)
+    except RuntimeError as e:
+        logger.error(str(e))
+        print(
+            'Provided argument "--input" is set to "usb", however no available USB cameras found. Please connect a camera or specifiy different input method.'
+        )
+        sys.exit(1)
 
     # Determine source type (usb, rpi, file, etc.)
     source_type = get_source_type(video_source) if video_source else None
@@ -316,6 +395,6 @@ if __name__ == "__main__":
         print('Please provide an input source using the "--input" argument: "usb" for USB camera or "rpi" for Raspberry Pi camera.')
         sys.exit(1)
 
-    app = VLMChatApp(camera=video_source, camera_type=source_type)
+    app = VLMChatApp(camera=video_source, camera_type=source_type, hef_path=str(hef_path))
     app.run()
     sys.exit(0)
