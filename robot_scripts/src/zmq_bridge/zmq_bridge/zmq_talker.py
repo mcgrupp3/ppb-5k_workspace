@@ -15,7 +15,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 
 
-RB_BUTTON = 5  # Xbox controller RB index (pygame mapping)
+RB_BUTTON = 10  # Xbox controller RB index (pygame mapping)
 
 
 class ZmqTalkerNode(Node):

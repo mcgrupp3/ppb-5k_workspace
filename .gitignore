@@ -4,3 +4,4 @@ log/
 **/__pycache__/
 **/*.pyc
 **/*.pyo
+robot_scripts/src/zmq_bridge/config/zmq_config.json

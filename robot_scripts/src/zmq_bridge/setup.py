@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'zmq_bridge'
@@ -10,6 +12,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'config'),
+            [os.path.relpath(p) for p in
+             glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', '*.json'))]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,9 +28,9 @@ setup(
         ],
     },
     entry_points={
-    'console_scripts': [
-        'zmq_talker  = zmq_bridge.zmq_talker:main',
-        'zmq_listener = zmq_bridge.zmq_listener:main',
-    ],
-},
+        'console_scripts': [
+            'zmq_talker  = zmq_bridge.zmq_talker:main',
+            'zmq_listener = zmq_bridge.zmq_listener:main',
+        ],
+    },
 )

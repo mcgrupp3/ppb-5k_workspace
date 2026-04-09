@@ -1,0 +1,14 @@
+// zmq_config.example.json  ← this gets committed
+{
+  "active_profile": "mac",
+  "profiles": {
+    "mac": {
+      "host": "host.docker.internal",
+      "port": 5555
+    },
+    "pi5": {
+      "host": "FILL_IN_PI5_IP",
+      "port": 5555
+    }
+  }
+}
