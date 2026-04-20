@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'imu_handler'
+package_name = 'vision_models'
 
 setup(
     name=package_name,
@@ -23,9 +23,8 @@ setup(
         ],
     },
     entry_points={
-    'console_scripts': [
-        'mpu6050_publisher = imu_handler.imu_node:main',
-        'scan_imu_sync = imu_handler.imu_sync:main',
-    ],
-},
+        'console_scripts': [
+            'vlm_vision_node = vision_models.vlm_vision_node:main',
+        ],
+    },
 )
