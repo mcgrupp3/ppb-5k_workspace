@@ -197,10 +197,28 @@ class MPU6050Publisher(Node):
             )
 
             # Fill angular velocity (in rad/s)
-            imu_msg.angular_velocity.x = self._apply_deadzone(gyro_x * gyro_scale, 0.06)
-            imu_msg.angular_velocity.y = self._apply_deadzone(gyro_y * gyro_scale, 0.06)
-            imu_msg.angular_velocity.z = self._apply_deadzone(gyro_z * gyro_scale, 0.06)
+            # Reduce gyro deadzone drastically — or remove it 
+            imu_msg.angular_velocity.x = self._apply_deadzone(gyro_x * gyro_scale, 0.005)
+            imu_msg.angular_velocity.y = self._apply_deadzone(gyro_y * gyro_scale, 0.005)
+            imu_msg.angular_velocity.z = self._apply_deadzone(gyro_z * gyro_scale, 0.005)
 
+            # Add covariances — required for Madgwick and RTAB-Map
+            imu_msg.linear_acceleration_covariance = [
+                0.04, 0.0,  0.0,
+                0.0,  0.04, 0.0,
+                0.0,  0.0,  0.04
+            ]
+            imu_msg.angular_velocity_covariance = [
+                0.02, 0.0,  0.0,
+                0.0,  0.02, 0.0,
+                0.0,  0.0,  0.02
+             ]
+            # -1 in first element tells filter "no orientation data from this sensor"
+            imu_msg.orientation_covariance = [
+               -1.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0
+             ]
             # Publish the IMU message
             self.publisher_.publish(imu_msg)
 

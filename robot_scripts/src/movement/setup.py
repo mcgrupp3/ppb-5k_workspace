@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'manual_control = movement.manual_control_node:main',
+            'manual = movement.manual_control:main',
+            'autonomous = movement.autonomous_control:main',
         ],
     },
 )

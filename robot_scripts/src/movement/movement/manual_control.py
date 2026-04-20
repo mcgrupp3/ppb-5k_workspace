@@ -71,7 +71,7 @@ class ManualControlNode(Node):
         self.vy_smooth    = self.ALPHA * vy    + (1 - self.ALPHA) * self.vy_smooth
         self.omega_smooth = self.ALPHA * omega + (1 - self.ALPHA) * self.omega_smooth
 
-        self.get_logger().info(
+        self.get_logger().debug(
             f'sending: vx={self.vx_smooth:.2f} vy={self.vy_smooth:.2f} omega={self.omega_smooth:.2f}'
         )
 

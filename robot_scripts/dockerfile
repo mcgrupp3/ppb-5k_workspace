@@ -1,10 +1,8 @@
 FROM ros:jazzy
 
-# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ROS_DISTRO=jazzy
 
-# Update and install TurtleBot4 packages
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-zmq \
@@ -18,17 +16,21 @@ RUN apt-get update && apt-get install -y \
     python3-pygame \
     python3-smbus2 \
     i2c-tools \
-    ros-jazzy-slam-toolbox \
-    ros-jazzy-rf2o-laser-odometry \
+    # Nav2
     ros-jazzy-nav2-bringup \
     ros-jazzy-nav2-msgs \
+    ros-jazzy-nav2-mppi-controller \
+    # RTAB-Map (replaces slam-toolbox + rf2o — handles ICP odom + SLAM in one)
+    ros-jazzy-rtabmap-ros \
+    # IMU filter (Madgwick — required before /imu/data is available for sync node)
+    ros-jazzy-imu-filter-madgwick \
+    # Message filters (required for scan/IMU sync node)
+    ros-jazzy-message-filters \
     && rm -rf /var/lib/apt/lists/*
 
-# Source ROS2 setup in bashrc
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 RUN echo "export ROS_DOMAIN_ID=42" >> ~/.bashrc
 
-# Create workspace
 WORKDIR /workspace
 
 CMD ["/bin/bash"]

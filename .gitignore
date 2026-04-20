@@ -5,3 +5,4 @@ log/
 **/*.pyc
 **/*.pyo
 robot_scripts/src/zmq_bridge/config/zmq_config.json
+robot_scripts/frames*
